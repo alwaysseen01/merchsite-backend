@@ -18,7 +18,7 @@ public class ItemController {
 
     record NewItemRequest(
             String name,
-            String desc,
+            String description,
             Double price,
             Integer quantity,
             Integer category
@@ -39,7 +39,7 @@ public class ItemController {
     public ResponseEntity<Item> create(@RequestBody NewItemRequest request){
         Item item = new Item();
         item.setName(request.name());
-        item.setDesc(request.desc());
+        item.setDescription(request.description());
         item.setPrice(request.price());
         item.setQuantity(request.quantity());
         item.setCategory(categoryRepository.findById(request.category()).get());
@@ -52,7 +52,7 @@ public class ItemController {
                                        @PathVariable("item_id") Integer id){
         Item item = itemRepository.findById(id).get();
         item.setName(request.name());
-        item.setDesc(request.desc());
+        item.setDescription(request.description());
         item.setPrice(request.price());
         item.setQuantity(request.quantity());
         item.setCategory(categoryRepository.findById(request.category()).get());

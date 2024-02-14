@@ -25,19 +25,19 @@ public class Item {
     )
     private Integer id;
     private String name;
-    private String desc;
+    private String description;
     private Double price;
     private Integer quantity;
     @ManyToOne
     @JoinColumn(name="category_id")
     private Category category;
     @JsonIgnore
-    @OneToMany(mappedBy = "photo")
+    @OneToMany(mappedBy = "item")
     private List<Photo> photos;
 
-    public Item(String name, String desc, Double price, Integer quantity, Category category) {
+    public Item(String name, String description, Double price, Integer quantity, Category category) {
         this.name = name;
-        this.desc = desc;
+        this.description = description;
         this.price = price;
         this.quantity = quantity;
         this.category = category;
