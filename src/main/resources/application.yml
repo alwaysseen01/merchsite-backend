@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:25060/defaultdb
+    url: jdbc:postgresql://db-postgresql-fra1-50664-do-user-15832433-0.c.db.ondigitalocean.com:25060/defaultdb?sslmode=require
     username: doadmin
     password: AVNS_AmHPrrkt2sEBRnsieZk
   jpa:
@@ -19,4 +19,3 @@ spring:
     allow-circular-references: true
 
 logging.level.org.springframework.security: DEBUG
-
