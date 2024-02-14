@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:25060/defaultdb
+    username: doadmin
+    password: AVNS_AmHPrrkt2sEBRnsieZk
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  main:
+    web-application-type: servlet
+    allow-circular-references: true
+
+logging.level.org.springframework.security: DEBUG
+
