@@ -2,6 +2,7 @@ package com.github.alwaysseen.merchsite.controllers;
 
 import com.github.alwaysseen.merchsite.entities.Category;
 import com.github.alwaysseen.merchsite.repositories.CategoryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,8 +12,9 @@ import java.util.List;
 
 @Controller
 @RequestMapping("api/category")
+@RequiredArgsConstructor
 public class CategoryController {
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
     record NewCategoryRequest(
             String name

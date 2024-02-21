@@ -3,6 +3,7 @@ package com.github.alwaysseen.merchsite.controllers;
 import com.github.alwaysseen.merchsite.entities.Photo;
 import com.github.alwaysseen.merchsite.repositories.ItemRepository;
 import com.github.alwaysseen.merchsite.repositories.PhotoRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,9 +13,10 @@ import java.util.List;
 
 @Controller
 @RequestMapping("api/photo")
+@RequiredArgsConstructor
 public class PhotoController {
-    private PhotoRepository photoRepository;
-    private ItemRepository itemRepository;
+    private final PhotoRepository photoRepository;
+    private final ItemRepository itemRepository;
 
     record NewPhotoRequest(
             String url,
