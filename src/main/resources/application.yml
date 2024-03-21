@@ -19,3 +19,6 @@ spring:
     allow-circular-references: true
 
 logging.level.org.springframework.security: DEBUG
+
+jwt.secret.access: x5Xq9PAiHuPFFJ/pG+H45JNQ/yPvNM8jXH3XNhWMp7k=
+jwt.secret.refresh: tFlD6u6wpYbtI0KWpVqLxX3CC4t2+YELUSxWYSdtSxk=

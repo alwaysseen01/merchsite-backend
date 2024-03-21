@@ -22,16 +22,6 @@ public class AppUserController {
 
     private final AppUserRepository userRepository;
 
-    private final PasswordEncoder encoder = new BCryptPasswordEncoder();
-
-    record NewUserRequest(
-            String fname,
-            String lname,
-            String email,
-            String password,
-            String role
-    ){}
-
     @GetMapping
     public ResponseEntity<List<AppUser>> getAll(){
         return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
@@ -40,19 +30,6 @@ public class AppUserController {
     @GetMapping("/id/{user_id}")
     public ResponseEntity<AppUser> getById(@PathVariable("user_id") Integer id){
         AppUser user = userRepository.findById(id).get();
-        return new ResponseEntity<>(user, HttpStatus.OK);
-    }
-
-    @PostMapping("/create")
-    public ResponseEntity<AppUser> create(@RequestBody NewUserRequest userRequest){
-        AppUser user = new AppUser();
-        user.setFname(userRequest.fname());
-        user.setLname(userRequest.lname());
-        user.setEmail(userRequest.email());
-        user.setPassword(encoder.encode(userRequest.password()));
-        user.setRole(Role.valueOf(userRequest.role()));
-        user.setCreationDate(LocalDate.now());
-        userRepository.save(user);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
