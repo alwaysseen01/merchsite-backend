@@ -74,7 +74,11 @@ public class AuthController {
         newUser.setLname(user.lname());
         newUser.setEmail(user.email());
         newUser.setPassword(user.password());
-        newUser.setRole(Role.valueOf(user.role()));
+        if(user.role() == null){
+            newUser.setRole(Role.USER);
+        } else {
+            newUser.setRole(Role.valueOf(user.role()));
+        }
         newUser.setCreationDate(LocalDate.now());
 
         try {
