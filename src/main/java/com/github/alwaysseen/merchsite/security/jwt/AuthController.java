@@ -2,7 +2,6 @@ package com.github.alwaysseen.merchsite.security.jwt;
 
 import com.github.alwaysseen.merchsite.entities.AppUser;
 import com.github.alwaysseen.merchsite.entities.Role;
-import com.github.alwaysseen.merchsite.repositories.AppUserRepository;
 import com.github.alwaysseen.merchsite.services.UserService;
 import jakarta.security.auth.message.AuthException;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
