@@ -32,7 +32,7 @@ public class AuthService<JwtAuthentication> {
             final String accessToken = jwtProvider.generateAccessToken(user);
             final String refreshToken = jwtProvider.generateRefreshToken(user);
             refreshStorage.put(user.getEmail(), refreshToken);
-            return new JwtResponse(accessToken, refreshToken);
+            return new JwtResponse(accessToken, refreshToken, user);
         } else {
             throw new AuthException("Wrong password");
         }
@@ -57,10 +57,10 @@ public class AuthService<JwtAuthentication> {
                 final AppUser user = userService.getByEmail(login)
                         .orElseThrow(() -> new AuthException("User not found"));
                 final String accessToken = jwtProvider.generateAccessToken(user);
-                return new JwtResponse(accessToken, null);
+                return new JwtResponse(accessToken, null, user);
             }
         }
-        return new JwtResponse(null, null);
+        return new JwtResponse(null, null, null);
     }
 
     public JwtResponse refresh(String refreshToken) throws AuthException {
@@ -74,7 +74,7 @@ public class AuthService<JwtAuthentication> {
                 final String accessToken = jwtProvider.generateAccessToken(user);
                 final String newRefreshToken = jwtProvider.generateRefreshToken(user);
                 refreshStorage.put(user.getEmail(), newRefreshToken);
-                return new JwtResponse(accessToken, newRefreshToken);
+                return new JwtResponse(accessToken, newRefreshToken, user);
             }
         }
         throw new AuthException("Wrong JWT token");
