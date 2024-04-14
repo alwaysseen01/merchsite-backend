@@ -1,6 +1,11 @@
 package com.github.alwaysseen.merchsite.payment.paypal;
 
 import com.nimbusds.jose.shaded.gson.JsonObject;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -10,12 +15,17 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+
 @Service
 public class PayPalPaymentService {
     private final String CLIENT_ID = "Af-uo24kik7c0d0tDqUan8uev07dhR8PaLqXjfOG354sZSgj_TRLM98-sbRUwcl7kg1-5s1NH8mGBjPf";
     private final String CLIENT_SECRET = "EPpzaXFjWJ6U4wJ-YK2Qit4hgvZaWvryazPK5USFW_WOD0D6GmG7fLQC3_g3Z9dsQMuSE05S4E15qCxL";
+    @Getter
+    @Setter
+    private String accessToken;
 
-    public String getAccessToken(){
+    public void getPayPalAccessToken(){
         String url = "https://api-m.sandbox.paypal.com/v1/oauth2/token";
         RestTemplate restTemplate = new RestTemplate();
 
@@ -30,9 +40,24 @@ public class PayPalPaymentService {
 
         ResponseEntity<PayPalAccessTokenResponce> response = restTemplate.postForEntity(url, requestEntity, PayPalAccessTokenResponce.class);
         if(response.getStatusCode().is2xxSuccessful()){
-            return response.getBody().getAccessToken();
+            setAccessToken(response.getBody().getAccessToken());
         } else {
-            return null;
+            setAccessToken(null);
+        }
+    }
+
+    public boolean isTokenExpired(){
+        try{
+            if(getAccessToken() != null){
+                Claims claims = Jwts.parserBuilder().build().parseClaimsJws(getAccessToken()).getBody();
+                long expirationTime = claims.getExpiration().getTime();
+                long currentTime = System.currentTimeMillis();
+                return currentTime >= expirationTime;
+            } else {
+                return true;
+            }
+        } catch (ExpiredJwtException e){
+            return true;
         }
     }
 }
