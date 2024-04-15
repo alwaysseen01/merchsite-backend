@@ -11,22 +11,22 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Order {
+public class AppOrder {
     @Id
     @SequenceGenerator(
-            name = "userSequence",
-            sequenceName = "userSequence",
+            name = "orderSequence",
+            sequenceName = "orderSequence",
             allocationSize = 1
     )
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "userSequence"
+            generator = "orderSequence"
     )
     private Integer id;
     private String paypalOrderId;
     private String paypalOrderStatus;
 
-    public Order(String paypalOrderId, String paypalOrderStatus) {
+    public AppOrder(String paypalOrderId, String paypalOrderStatus) {
         this.paypalOrderId = paypalOrderId;
         this.paypalOrderStatus = paypalOrderStatus;
     }
