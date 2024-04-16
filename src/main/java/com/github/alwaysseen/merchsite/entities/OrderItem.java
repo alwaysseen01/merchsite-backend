@@ -27,4 +27,8 @@ public class OrderItem {
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
+    private Integer quantity;
+    private String captureId;
+    @Enumerated(EnumType.STRING)
+    private PayPalCaptureStatus paypalCaptureStatus;
 }

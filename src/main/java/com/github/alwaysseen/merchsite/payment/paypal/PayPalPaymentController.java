@@ -3,6 +3,7 @@ package com.github.alwaysseen.merchsite.payment.paypal;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.alwaysseen.merchsite.entities.AppOrder;
+import com.github.alwaysseen.merchsite.entities.Item;
 import com.github.alwaysseen.merchsite.entities.OrderItem;
 import com.github.alwaysseen.merchsite.entities.PayPalOrderStatus;
 import com.github.alwaysseen.merchsite.payment.paypal.request.PayPalOrderRequest;
@@ -11,7 +12,9 @@ import com.github.alwaysseen.merchsite.payment.paypal.request.attributes.*;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderCaptureResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalRefundResponse;
+import com.github.alwaysseen.merchsite.payment.paypal.response.attributes.PayPalGetCaptureResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.attributes.PayPalLink;
+import com.github.alwaysseen.merchsite.repositories.ItemRepository;
 import com.github.alwaysseen.merchsite.repositories.OrderItemRepository;
 import com.github.alwaysseen.merchsite.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,8 @@ public class PayPalPaymentController {
     private final OrderRepository orderRepository;
     @Autowired
     private final OrderItemRepository orderItemRepository;
+    @Autowired
+    private final ItemRepository itemRepository;
 
     DecimalFormat amountValueFormat = new DecimalFormat("0.00");
 
@@ -63,8 +68,8 @@ public class PayPalPaymentController {
             for(OrderItem orderItem: orderItems){
                 PayPalAmount amount = new PayPalAmount();
                 amount.setCurrencyCode("USD");
-                amount.setValue(amountValueFormat.format(orderItem.getItem().getPrice()));
-                purchaseUnits.add(new PayPalPurchaseUnit(amount));
+                amount.setValue(amountValueFormat.format(orderItem.getItem().getPrice()*orderItem.getQuantity()));
+                purchaseUnits.add(new PayPalPurchaseUnit(orderItem.getId().toString(), appOrderId.toString(), amount));
             }
             request.setOrderIntent(PayPalOrderIntent.CAPTURE);
             request.setPurchaseUnits(purchaseUnits);
@@ -89,29 +94,42 @@ public class PayPalPaymentController {
     }
 
     @GetMapping("/checkout/success")
-    public ResponseEntity<AppOrder> success(@RequestParam("token") String orderId){
+    public ResponseEntity<List<OrderItem>> success(@RequestParam("token") String orderId){
         PayPalOrderCaptureResponse response = service.capturePayment(orderId);
         if(response != null){
             AppOrder order = orderRepository.findByPaypalOrderId(orderId);
+            List<OrderItem> orderItems = orderItemRepository.findByAppOrder(order);
+            for(int i=0;i<response.getPurchaseUnits().size();i++){
+                for(int j=0;j<orderItems.size();j++){
+                    if(orderItems.get(j).getId().toString().equals(response.getPurchaseUnits().get(i).getReferenceId())){
+                        orderItems.get(j).setCaptureId(response.getPurchaseUnits().get(i).getPayments().getCaptures().get(0).getId());
+                        orderItems.get(j).setPaypalCaptureStatus(response.getPurchaseUnits().get(i).getPayments().getCaptures().get(0).getStatus());
+                        Item item = itemRepository.findById(orderItems.get(j).getItem().getId()).get();
+                        item.setQuantity(item.getQuantity()-orderItems.get(j).getQuantity());
+                        break;
+                    }
+                }
+            }
             order.setPaypalOrderStatus(PayPalOrderStatus.COMPLETED);
-            order.setPaypalCaptureId(response.getPurchaseUnits().get(0).getPayments().getCaptures().get(0).getId());
-            order.setPaypalCaptureStatus(response.getPurchaseUnits().get(0).getPayments().getCaptures().get(0).getStatus());
             orderRepository.save(order);
-            return new ResponseEntity<>(order, HttpStatus.OK);
+            orderItemRepository.saveAll(orderItems);
+            return new ResponseEntity<>(orderItems, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @PostMapping("/refund/{paypal_order_id}")
-    public ResponseEntity<List<PayPalLink>> refund(@PathVariable("paypal_order_id") String orderId,
+    @PostMapping("/refund/{capture_id}")
+    public ResponseEntity<PayPalGetCaptureResponse> refund(@PathVariable("capture_id") String captureId,
                                                    @RequestBody PayPalRefundRequest request){
         try {
-            logger.info("REFUND METHOD");
-            PayPalRefundResponse response = service.refund(orderId, request);
-            if(response != null){
-                AppOrder order = orderRepository.findByPaypalOrderId(orderId);
-                return new ResponseEntity<>(response.getLinks(), HttpStatus.OK);
+            PayPalRefundResponse refund = service.refund(captureId, request);
+            if(refund != null){
+                PayPalGetCaptureResponse response = service.capturedPaymentDetails(captureId);
+                OrderItem orderItem = orderItemRepository.findByCaptureId(captureId);
+                orderItem.setPaypalCaptureStatus(response.getStatus());
+                orderItemRepository.save(orderItem);
+                return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 logger.warn("YOU FUCKED UP AGAIN!");
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

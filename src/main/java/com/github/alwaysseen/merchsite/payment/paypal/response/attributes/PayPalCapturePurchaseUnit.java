@@ -7,6 +7,9 @@ import java.util.List;
 
 @Data
 public class PayPalCapturePurchaseUnit {
+    @JsonProperty("reference_id")
+    private String referenceId;
+
     @JsonProperty("payments")
     private PayPalPayment payments;
 }

@@ -23,11 +23,8 @@ public class AppOrder {
     )
     private Integer id;
     private String paypalOrderId;
-    private String paypalCaptureId;
     @Enumerated(EnumType.STRING)
     private PayPalOrderStatus paypalOrderStatus;
-    @Enumerated(EnumType.STRING)
-    private PayPalCaptureStatus paypalCaptureStatus;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private AppUser user;

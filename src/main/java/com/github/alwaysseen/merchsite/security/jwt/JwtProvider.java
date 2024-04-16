@@ -40,9 +40,14 @@ public class JwtProvider {
         this.jwtRefreshSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret));
     }
 
+    public Long getUserIdFromAccessToken(String token) {
+        Claims claims = Jwts.parser().setSigningKey(jwtAccessSecret).parseClaimsJws(token).getBody();
+        return claims.get("id", Long.class);
+    }
+
     public String generateAccessToken(@NonNull AppUser user) {
         final LocalDateTime now = LocalDateTime.now();
-        final Instant accessExpirationInstant = now.plusMinutes(1).atZone(ZoneId.systemDefault()).toInstant();
+        final Instant accessExpirationInstant = now.plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant();
         final Date accessExpiration = Date.from(accessExpirationInstant);
         return Jwts.builder()
                 .setSubject(user.getEmail())
@@ -51,11 +56,6 @@ public class JwtProvider {
                 .claim("roles", user.getRole())
                 .claim("id", user.getId())
                 .compact();
-    }
-
-    public Long getUserIdFromAccessToken(String token) {
-        Claims claims = Jwts.parser().setSigningKey(jwtAccessSecret).parseClaimsJws(token).getBody();
-        return claims.get("id", Long.class);
     }
 
 

@@ -40,7 +40,8 @@ public class OrderController {
     }
 
     record OrderItemRequest(
-           Integer itemId
+           Integer itemId,
+           Integer quantity
     ){}
 
     record OrderRequest(
@@ -50,6 +51,12 @@ public class OrderController {
     @PostMapping("/create")
     public ResponseEntity<AppOrder> create(@RequestBody OrderRequest request,
                                            @AuthenticationPrincipal UserDetails user){
+        for(OrderItemRequest orderItemRequest: request.orderItems()){
+            Item item = itemRepository.findById(orderItemRequest.itemId()).get();
+            if(item.getQuantity() < orderItemRequest.quantity){
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+        }
         AppOrder order = new AppOrder();
         order.setUser(userRepository.getByEmail(user.getUsername()));
         AppOrder newOrder = repository.save(order);
@@ -57,6 +64,7 @@ public class OrderController {
             OrderItem orderItem = new OrderItem();
             orderItem.setAppOrder(repository.findById(newOrder.getId()).get());
             orderItem.setItem(itemRepository.findById(orderItemRequest.itemId()).get());
+            orderItem.setQuantity(orderItemRequest.quantity);
             orderItemRepository.save(orderItem);
         }
         return new ResponseEntity<>(newOrder, HttpStatus.OK);

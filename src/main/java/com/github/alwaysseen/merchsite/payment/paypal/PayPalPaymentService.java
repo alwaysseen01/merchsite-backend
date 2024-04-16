@@ -8,15 +8,13 @@ import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalAccessToken
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderCaptureResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalRefundResponse;
+import com.github.alwaysseen.merchsite.payment.paypal.response.attributes.PayPalGetCaptureResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -89,6 +87,26 @@ public class PayPalPaymentService {
         }
     }
 
+    public PayPalGetCaptureResponse capturedPaymentDetails(String capture_id){
+        String url = "https://api-m.sandbox.paypal.com/v2/payments/captures/"+capture_id;
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        if(isTokenExpired()){
+            getPayPalAccessToken();
+        }
+        headers.setBearerAuth(accessToken);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        ResponseEntity<PayPalGetCaptureResponse> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, PayPalGetCaptureResponse.class);
+        if(response.getStatusCode().is2xxSuccessful()){
+            return response.getBody();
+        } else {
+            return null;
+        }
+    }
+
     public PayPalOrderResponse createOrder(PayPalOrderRequest request) throws JsonProcessingException {
         String url = "https://api-m.sandbox.paypal.com/v2/checkout/orders";
         RestTemplate restTemplate = new RestTemplate();
@@ -111,9 +129,9 @@ public class PayPalPaymentService {
         }
     }
 
-    public PayPalRefundResponse refund(String orderId, PayPalRefundRequest request) throws JsonProcessingException {
+    public PayPalRefundResponse refund(String capture_id, PayPalRefundRequest request) throws JsonProcessingException {
         logger.info("SERVICE METHOD REFUND");
-        String url = "https://api-m.sandbox.paypal.com/v2/payments/captures/"+orderId+"/refund";
+        String url = "https://api-m.sandbox.paypal.com/v2/payments/captures/"+capture_id+"/refund";
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
