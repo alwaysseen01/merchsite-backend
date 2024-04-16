@@ -30,11 +30,12 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         authz -> authz
-                                .requestMatchers("/auth/**", "/error", "/api/paypal/checkout").permitAll()
+                                .requestMatchers("/auth/**", "/error").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/category", "/api/category/id/**", "/api/item", "/api/item/id/**", "/api/item/category/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/category/create", "/api/item/create").permitAll()
                                 .requestMatchers(HttpMethod.PUT, "/api/category/update/**", "/api/item/update/**").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/api/category/delete/**", "/api/item/delete/**").permitAll()
+                                .requestMatchers("/api/paypal/checkout", "/api/paypal/checkout/success").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .build();

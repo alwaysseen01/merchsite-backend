@@ -3,15 +3,13 @@ package com.github.alwaysseen.merchsite.payment.paypal;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.alwaysseen.merchsite.entities.AppOrder;
+import com.github.alwaysseen.merchsite.entities.PayPalOrderStatus;
 import com.github.alwaysseen.merchsite.payment.paypal.request.PayPalOrderRequest;
-import com.github.alwaysseen.merchsite.payment.paypal.request.attributes.PayPalAppContext;
-import com.github.alwaysseen.merchsite.payment.paypal.request.attributes.PayPalOrderIntent;
-import com.github.alwaysseen.merchsite.payment.paypal.request.attributes.PayPalPurchaseUnit;
-import com.github.alwaysseen.merchsite.payment.paypal.request.attributes.PaymentLandingPage;
+import com.github.alwaysseen.merchsite.payment.paypal.request.attributes.*;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderResponse;
+import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalRefundResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.attributes.PayPalLink;
 import com.github.alwaysseen.merchsite.repositories.OrderRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -49,12 +44,13 @@ public class PayPalPaymentController {
         PayPalOrderRequest request = new PayPalOrderRequest();
         request.setPurchaseUnits(orderRequest.purchaseUnits());
         request.setOrderIntent(orderRequest.orderIntent());
-        PayPalAppContext context = new PayPalAppContext();
+        PayPalExperienceContext context = new PayPalExperienceContext();
         context.setBrandName("Merchsite");
-        context.setLandingPage(PaymentLandingPage.BILLING);
-        //just set it for the test :)
-        context.setReturnUrl("https://google.com");
-        request.setContext(context);
+        context.setLandingPage(PaymentLandingPage.GUEST_CHECKOUT);
+        context.setReturnUrl("http://localhost:8080/api/paypal/checkout/success");
+        context.setCancelUrl("https://github.com");
+        request.setPaymentSource(new PaymentSource(new PayPalPaymentSource(context)));
+
         try {
             PayPalOrderResponse response = service.createOrder(request);
             if(response != null){
@@ -68,7 +64,15 @@ public class PayPalPaymentController {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/checkout/success")
+    public ResponseEntity<AppOrder> success(@RequestParam("token") String orderId){
+        AppOrder order = orderRepository.findByPaypalOrderId(orderId);
+        order.setPaypalOrderStatus(PayPalOrderStatus.COMPLETED);
+        orderRepository.save(order);
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 }

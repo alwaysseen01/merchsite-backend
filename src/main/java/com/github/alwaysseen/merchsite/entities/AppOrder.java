@@ -1,14 +1,10 @@
 package com.github.alwaysseen.merchsite.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppOrder {
@@ -24,9 +20,9 @@ public class AppOrder {
     )
     private Integer id;
     private String paypalOrderId;
-    private String paypalOrderStatus;
+    private PayPalOrderStatus paypalOrderStatus;
 
-    public AppOrder(String paypalOrderId, String paypalOrderStatus) {
+    public AppOrder(String paypalOrderId, PayPalOrderStatus paypalOrderStatus) {
         this.paypalOrderId = paypalOrderId;
         this.paypalOrderStatus = paypalOrderStatus;
     }

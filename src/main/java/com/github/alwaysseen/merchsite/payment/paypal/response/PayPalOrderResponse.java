@@ -1,6 +1,7 @@
 package com.github.alwaysseen.merchsite.payment.paypal.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.alwaysseen.merchsite.entities.PayPalOrderStatus;
 import com.github.alwaysseen.merchsite.payment.paypal.response.attributes.PayPalLink;
 import lombok.Data;
 
@@ -12,7 +13,7 @@ public class PayPalOrderResponse {
     private String orderId;
 
     @JsonProperty("status")
-    private String status;
+    private PayPalOrderStatus status;
 
     @JsonProperty("links")
     private List<PayPalLink> links;

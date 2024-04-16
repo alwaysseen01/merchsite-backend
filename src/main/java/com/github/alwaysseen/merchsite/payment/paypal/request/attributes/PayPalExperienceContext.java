@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class PayPalAppContext {
+public class PayPalExperienceContext {
     @JsonProperty("brand_name")
     private String brandName;
 
@@ -13,4 +13,7 @@ public class PayPalAppContext {
 
     @JsonProperty("return_url")
     private String returnUrl;
+
+    @JsonProperty("cancel_url")
+    private String cancelUrl;
 }

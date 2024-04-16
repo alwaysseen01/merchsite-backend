@@ -6,9 +6,7 @@ import com.github.alwaysseen.merchsite.payment.paypal.request.PayPalOrderRequest
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalAccessTokenResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalRefundResponse;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -28,9 +26,9 @@ public class PayPalPaymentService {
     private final String CLIENT_SECRET = "EPpzaXFjWJ6U4wJ-YK2Qit4hgvZaWvryazPK5USFW_WOD0D6GmG7fLQC3_g3Z9dsQMuSE05S4E15qCxL";
     private final Logger logger = LoggerFactory.getLogger(PayPalPaymentService.class);
 
-    @Getter
-    @Setter
+
     private String accessToken;
+    private int expiresIn;
 
     public void getPayPalAccessToken(){
         String url = "https://api-m.sandbox.paypal.com/v1/oauth2/token";
@@ -47,20 +45,20 @@ public class PayPalPaymentService {
 
         ResponseEntity<PayPalAccessTokenResponse> response = restTemplate.postForEntity(url, requestEntity, PayPalAccessTokenResponse.class);
         if(response.getStatusCode().is2xxSuccessful()){
-            setAccessToken(response.getBody().getAccessToken());
+            accessToken = response.getBody().getAccessToken();
+            expiresIn = response.getBody().getExpiresIn();
         } else {
-            setAccessToken(null);
+            accessToken = null;
+            expiresIn = 0;
         }
     }
 
     public boolean isTokenExpired(){
         try{
-            if(getAccessToken() != null){
-                return false;
-//                Claims claims = Jwts.parserBuilder().build().parseClaimsJws(getAccessToken()).getBody();
-//                long expirationTime = claims.getExpiration().getTime();
-//                long currentTime = System.currentTimeMillis();
-//                return currentTime >= expirationTime;
+            if(accessToken != null){
+                long expirationTime = expiresIn;
+                long currentTime = System.currentTimeMillis()/1000;
+                return currentTime >= expirationTime;
             } else {
                 return true;
             }
@@ -70,19 +68,15 @@ public class PayPalPaymentService {
     }
 
     public PayPalOrderResponse createOrder(PayPalOrderRequest request) throws JsonProcessingException {
-        logger.info("METHOD createOrder CALLED");
         String url = "https://api-m.sandbox.paypal.com/v2/checkout/orders";
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        logger.info("CHECKING ACCESS TOKEN");
         if(isTokenExpired()){
-            logger.info("MISSING TOKEN, GENERATING NEW");
             getPayPalAccessToken();
         }
-        logger.info("ACCESS TOKEN "+getAccessToken());
-        headers.setBearerAuth(getAccessToken());
+        headers.setBearerAuth(accessToken);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(request);
@@ -101,10 +95,10 @@ public class PayPalPaymentService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        if(getAccessToken() == null || isTokenExpired()){
+        if(isTokenExpired()){
             getPayPalAccessToken();
         }
-        headers.setBearerAuth(getAccessToken());
+        headers.setBearerAuth(accessToken);
 
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
         ResponseEntity<PayPalRefundResponse> response = restTemplate.postForEntity(url, requestEntity, PayPalRefundResponse.class);
