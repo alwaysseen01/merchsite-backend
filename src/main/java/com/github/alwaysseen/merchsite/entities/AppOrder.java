@@ -21,9 +21,6 @@ public class AppOrder {
     private Integer id;
     private String paypalOrderId;
     private PayPalOrderStatus paypalOrderStatus;
-
-    public AppOrder(String paypalOrderId, PayPalOrderStatus paypalOrderStatus) {
-        this.paypalOrderId = paypalOrderId;
-        this.paypalOrderStatus = paypalOrderStatus;
-    }
+    private String paypalCaptureId;
+    private PayPalCaptureStatus paypalCaptureStatus;
 }

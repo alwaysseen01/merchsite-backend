@@ -5,7 +5,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.alwaysseen.merchsite.entities.AppOrder;
 import com.github.alwaysseen.merchsite.entities.PayPalOrderStatus;
 import com.github.alwaysseen.merchsite.payment.paypal.request.PayPalOrderRequest;
+import com.github.alwaysseen.merchsite.payment.paypal.request.PayPalRefundRequest;
 import com.github.alwaysseen.merchsite.payment.paypal.request.attributes.*;
+import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderCaptureResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalRefundResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.attributes.PayPalLink;
@@ -70,9 +72,34 @@ public class PayPalPaymentController {
 
     @GetMapping("/checkout/success")
     public ResponseEntity<AppOrder> success(@RequestParam("token") String orderId){
-        AppOrder order = orderRepository.findByPaypalOrderId(orderId);
-        order.setPaypalOrderStatus(PayPalOrderStatus.COMPLETED);
-        orderRepository.save(order);
-        return new ResponseEntity<>(order, HttpStatus.OK);
+        PayPalOrderCaptureResponse response = service.capturePayment(orderId);
+        if(response != null){
+            AppOrder order = orderRepository.findByPaypalOrderId(orderId);
+            order.setPaypalOrderStatus(PayPalOrderStatus.COMPLETED);
+            order.setPaypalCaptureId(response.getPurchaseUnits().get(0).getPayments().getCaptures().get(0).getId());
+            order.setPaypalCaptureStatus(response.getPurchaseUnits().get(0).getPayments().getCaptures().get(0).getStatus());
+            orderRepository.save(order);
+            return new ResponseEntity<>(order, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/refund/{order_id}")
+    public ResponseEntity<List<PayPalLink>> refund(@PathVariable("order_id") String orderId,
+                                                   @RequestBody PayPalRefundRequest request){
+        try {
+            logger.info("REFUND METHOD");
+            PayPalRefundResponse response = service.refund(orderId, request);
+            if(response != null){
+                AppOrder order = orderRepository.findByPaypalOrderId(orderId);
+                return new ResponseEntity<>(response.getLinks(), HttpStatus.OK);
+            } else {
+                logger.warn("YOU FUCKED UP AGAIN!");
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

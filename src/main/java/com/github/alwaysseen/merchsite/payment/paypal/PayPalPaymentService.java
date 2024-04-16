@@ -3,7 +3,9 @@ package com.github.alwaysseen.merchsite.payment.paypal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.alwaysseen.merchsite.payment.paypal.request.PayPalOrderRequest;
+import com.github.alwaysseen.merchsite.payment.paypal.request.PayPalRefundRequest;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalAccessTokenResponse;
+import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderCaptureResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalOrderResponse;
 import com.github.alwaysseen.merchsite.payment.paypal.response.PayPalRefundResponse;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -67,6 +69,26 @@ public class PayPalPaymentService {
         }
     }
 
+    public PayPalOrderCaptureResponse capturePayment(String orderId){
+        String url = "https://api-m.sandbox.paypal.com/v2/checkout/orders/"+orderId+"/capture";
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        if(isTokenExpired()){
+            getPayPalAccessToken();
+        }
+        headers.setBearerAuth(accessToken);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        ResponseEntity<PayPalOrderCaptureResponse> response = restTemplate.postForEntity(url, requestEntity, PayPalOrderCaptureResponse.class);
+        if(response.getStatusCode().is2xxSuccessful()){
+            return response.getBody();
+        } else {
+            return null;
+        }
+    }
+
     public PayPalOrderResponse createOrder(PayPalOrderRequest request) throws JsonProcessingException {
         String url = "https://api-m.sandbox.paypal.com/v2/checkout/orders";
         RestTemplate restTemplate = new RestTemplate();
@@ -89,8 +111,9 @@ public class PayPalPaymentService {
         }
     }
 
-    public PayPalRefundResponse refund(String orderId){
-        String url = "https://api-m.paypal.com/v2/payments/captures/"+orderId+"/refund";
+    public PayPalRefundResponse refund(String orderId, PayPalRefundRequest request) throws JsonProcessingException {
+        logger.info("SERVICE METHOD REFUND");
+        String url = "https://api-m.sandbox.paypal.com/v2/payments/captures/"+orderId+"/refund";
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -100,7 +123,9 @@ public class PayPalPaymentService {
         }
         headers.setBearerAuth(accessToken);
 
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper.writeValueAsString(request);
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
         ResponseEntity<PayPalRefundResponse> response = restTemplate.postForEntity(url, requestEntity, PayPalRefundResponse.class);
         if(response.getStatusCode().is2xxSuccessful()){
             return response.getBody();
