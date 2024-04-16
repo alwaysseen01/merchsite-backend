@@ -39,7 +39,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.PUT, "/api/category/update/**", "/api/item/update/**").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/api/category/delete/**", "/api/item/delete/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/paypal/refund/**").permitAll()
-                                .requestMatchers("/api/paypal/checkout", "/api/paypal/checkout/success").permitAll()
+                                .requestMatchers("/api/paypal/checkout/success").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .build();
