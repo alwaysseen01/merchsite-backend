@@ -1,7 +1,10 @@
 package com.github.alwaysseen.merchsite.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -20,7 +23,15 @@ public class AppOrder {
     )
     private Integer id;
     private String paypalOrderId;
-    private PayPalOrderStatus paypalOrderStatus;
     private String paypalCaptureId;
+    @Enumerated(EnumType.STRING)
+    private PayPalOrderStatus paypalOrderStatus;
+    @Enumerated(EnumType.STRING)
     private PayPalCaptureStatus paypalCaptureStatus;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private AppUser user;
+    @JsonIgnore
+    @OneToMany(mappedBy = "appOrder")
+    private List<OrderItem> orderItems;
 }

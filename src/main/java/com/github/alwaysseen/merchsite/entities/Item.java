@@ -34,6 +34,9 @@ public class Item {
     @JsonIgnore
     @OneToMany(mappedBy = "item")
     private List<Photo> photos;
+    @JsonIgnore
+    @OneToMany(mappedBy = "item")
+    private List<OrderItem> orderItems;
 
     public Item(String name, String description, Double price, Integer quantity, Category category) {
         this.name = name;

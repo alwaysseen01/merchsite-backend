@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,6 +34,9 @@ public class AppUser {
     private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<AppOrder> orders;
     @Convert(converter = LocalDateToStringConverter.class)
     private LocalDate creationDate;
 

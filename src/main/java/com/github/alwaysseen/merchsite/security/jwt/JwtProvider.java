@@ -1,6 +1,7 @@
 package com.github.alwaysseen.merchsite.security.jwt;
 
 import com.github.alwaysseen.merchsite.entities.AppUser;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -48,9 +49,15 @@ public class JwtProvider {
                 .setExpiration(accessExpiration)
                 .signWith(jwtAccessSecret)
                 .claim("roles", user.getRole())
-                .claim("firstName", user.getFname())
+                .claim("id", user.getId())
                 .compact();
     }
+
+    public Long getUserIdFromAccessToken(String token) {
+        Claims claims = Jwts.parser().setSigningKey(jwtAccessSecret).parseClaimsJws(token).getBody();
+        return claims.get("id", Long.class);
+    }
+
 
     public String generateRefreshToken(@NonNull AppUser user) {
         final LocalDateTime now = LocalDateTime.now();
@@ -61,6 +68,14 @@ public class JwtProvider {
                 .setExpiration(refreshExpiration)
                 .signWith(jwtRefreshSecret)
                 .compact();
+    }
+
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     public boolean validateAccessToken(@NonNull String accessToken) {
