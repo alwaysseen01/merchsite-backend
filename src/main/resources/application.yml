@@ -3,12 +3,9 @@ server:
 
 spring:
   datasource:
-#    url: jdbc:postgresql://db-postgresql-fra1-50664-do-user-15832433-0.c.db.ondigitalocean.com:25060/defaultdb?sslmode=require
-#    username: doadmin
-#    password: AVNS_AmHPrrkt2sEBRnsieZk
-    url: jdbc:postgresql://localhost:5432/defaultdb
-    username: postgres
-    password: solkaz123
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class PayPalPayment {
+public class PayPalPaymentResponse {
     @JsonProperty("captures")
     private List<PayPalCapture> captures;
 }

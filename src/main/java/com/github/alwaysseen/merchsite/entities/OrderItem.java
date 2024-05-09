@@ -21,14 +21,19 @@ public class OrderItem {
             generator = "orderItemSequence"
     )
     private Integer id;
+
     @ManyToOne
     @JoinColumn(name = "order_id")
     private AppOrder appOrder;
+
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
+
     private Integer quantity;
-    private String captureId;
+
+    private String payPalCaptureId;
+
     @Enumerated(EnumType.STRING)
     private PayPalCaptureStatus paypalCaptureStatus;
 }
