@@ -13,6 +13,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>merchsite</name>
 	<description>Demo project for Spring Boot</description>
+	<repositories>
+		<repository>
+			<id>consensys</id>
+			<url>https://artifacts.consensys.net/public/maven/maven/</url>
+		</repository>
+	</repositories>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -71,6 +77,37 @@
 			<artifactId>jjwt-jackson</artifactId>
 			<version>0.11.5</version>
 			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>core</artifactId>
+			<version>4.11.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>utils</artifactId>
+			<version>4.11.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>parity</artifactId>
+			<version>4.11.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>crypto</artifactId>
+			<version>4.11.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>abi</artifactId>
+			<version>4.11.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.web3j</groupId>
+			<artifactId>codegen</artifactId>
+			<version>4.11.2</version>
 		</dependency>
 	</dependencies>
 
