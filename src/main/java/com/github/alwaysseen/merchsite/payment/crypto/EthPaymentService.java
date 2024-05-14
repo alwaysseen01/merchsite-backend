@@ -113,6 +113,30 @@ public class EthPaymentService {
                 .get();
     }
 
+    public TransactionReceipt withdrawMoney() throws IOException {
+        Credentials sender = Credentials.create(ECKeyPair.create(new BigInteger(MAIN_WALLET.substring(2), 16)));
+        TransactionManager txSender = new FastRawTransactionManager(web3j, sender);
+
+        PaymentContract contract = loadContract();
+
+        Function function = new Function(
+                "transferMoney",
+                Arrays.<Type>asList(),
+                Collections.<TypeReference<?>>emptyList());
+        String txFunction = FunctionEncoder.encode(function);
+        EthSendTransaction transaction = txSender.sendTransaction(
+                GAS_PRICE,
+                GAS_LIMIT,
+                contract.getContractAddress(),
+                txFunction,
+                BigInteger.ZERO
+        );
+        return web3j.ethGetTransactionReceipt(transaction.getTransactionHash())
+                .send()
+                .getTransactionReceipt()
+                .get();
+    }
+
     public double getEthCourse() {
         boolean makeRequest = true;
         if (convertTimeStamp != null) {

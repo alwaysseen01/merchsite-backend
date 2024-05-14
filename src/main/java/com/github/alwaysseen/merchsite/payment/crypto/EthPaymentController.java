@@ -95,4 +95,18 @@ public class EthPaymentController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<?> withdraw(){
+        try {
+            TransactionReceipt receipt = service.withdrawMoney();
+            if(receipt.getStatus().equals("0x1")){
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
