@@ -23,7 +23,12 @@ public class EthPayment {
             generator = "ethPaymentSequence"
     )
     private int id;
+
     private String txHash;
+
+    @Enumerated(EnumType.STRING)
+    private EthPaymentStatus status;
+
     @JsonIgnore
     @OneToOne(mappedBy = "ethPayment")
     private AppOrder order;

@@ -18,6 +18,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.FastRawTransactionManager;
 import org.web3j.tx.TransactionManager;
@@ -63,9 +64,9 @@ public class EthPaymentService {
         return PaymentContract.load(CONTRACT, web3j, SHOP_ADDRESS, gasProvider);
     }
 
-    public String capturePayment(int orderId, double amount, String address) throws IOException {
+    public TransactionReceipt capturePayment(int orderId, double amount, String address) throws IOException {
         PaymentContract contract = loadContract();
-        long weiValue = (long)(amount / getEthCourse() * Math.pow(10, 18));
+        long weiValue = (long)(amount / 2927 * Math.pow(10, 18));
         Credentials sender = Credentials.create(ECKeyPair.create(new BigInteger(address.substring(2), 16)));
         TransactionManager txSendr = new FastRawTransactionManager(web3j, sender, new NoOpProcessor(web3j));
         Function function = new Function(
@@ -74,16 +75,19 @@ public class EthPaymentService {
                 Collections.<TypeReference<?>>emptyList());
         String txFunction = FunctionEncoder.encode(function);
 
-        EthSendTransaction sendTransaction = txSendr.sendTransaction(
+        EthSendTransaction transaction = txSendr.sendTransaction(
                 GAS_PRICE,
                 GAS_LIMIT,
                 contract.getContractAddress(),
                 txFunction,
                 BigInteger.valueOf(weiValue));
-        return sendTransaction.getTransactionHash();
+        return web3j.ethGetTransactionReceipt(transaction.getTransactionHash())
+                .send()
+                .getTransactionReceipt()
+                .get();
     }
 
-    public EthSendTransaction refund(int orderId) throws IOException {
+    public TransactionReceipt refund(int orderId) throws IOException {
         Credentials SHOP_ADDRESS = Credentials.create(ECKeyPair.create(new BigInteger(MAIN_WALLET.substring(2), 16)));
         TransactionManager txSender = new FastRawTransactionManager(web3j, SHOP_ADDRESS);
 
@@ -95,13 +99,17 @@ public class EthPaymentService {
 
         PaymentContract contract = loadContract();
 
-        return txSender.sendTransaction(
+        EthSendTransaction transaction = txSender.sendTransaction(
                 GAS_PRICE,
                 GAS_LIMIT,
                 contract.getContractAddress(),
                 txFunction,
                 BigInteger.ZERO
         );
+        return web3j.ethGetTransactionReceipt(transaction.getTransactionHash())
+                .send()
+                .getTransactionReceipt()
+                .get();
     }
 
     public double getEthCourse() {

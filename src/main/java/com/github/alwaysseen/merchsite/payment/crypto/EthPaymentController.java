@@ -2,6 +2,7 @@ package com.github.alwaysseen.merchsite.payment.crypto;
 
 import com.github.alwaysseen.merchsite.entities.AppOrder;
 import com.github.alwaysseen.merchsite.entities.EthPayment;
+import com.github.alwaysseen.merchsite.entities.EthPaymentStatus;
 import com.github.alwaysseen.merchsite.entities.OrderItem;
 import com.github.alwaysseen.merchsite.repositories.EthPaymentRepository;
 import com.github.alwaysseen.merchsite.repositories.OrderItemRepository;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,25 +51,24 @@ public class EthPaymentController {
                 amount += item.getQuantity()*item.getItem().getPrice();
             }
             try {
-                String txHash = service.capturePayment(orderId, amount, request.address);
-                EthPayment payment = new EthPayment();
-                payment.setTxHash(txHash);
-                payment.setOrder(order);
-                order.setEthPayment(payment);
-                repository.save(payment);
-                orderRepository.save(order);
-                return new ResponseEntity<>(order, HttpStatus.OK);
+                TransactionReceipt receipt = service.capturePayment(orderId, amount, request.address);
+                if(receipt.getStatus().equals("0x1")){
+                    EthPayment payment = new EthPayment();
+                    payment.setTxHash(receipt.getTransactionHash());
+                    payment.setOrder(order);
+                    payment.setStatus(EthPaymentStatus.PAYED);
+                    order.setEthPayment(payment);
+                    repository.save(payment);
+                    orderRepository.save(order);
+                    return new ResponseEntity<>(order, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
             } catch (IOException e) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-    }
-
-    @GetMapping("/currency")
-    public ResponseEntity<Double> getEthCourse(){
-        Double value = service.getEthCourse();
-        return new ResponseEntity<>(value, HttpStatus.OK);
     }
 }
