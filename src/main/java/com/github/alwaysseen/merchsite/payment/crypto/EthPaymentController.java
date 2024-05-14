@@ -70,4 +70,29 @@ public class EthPaymentController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @PostMapping("/refund/{order_id}")
+    public ResponseEntity<String> refund(@RequestBody PaymentRequest request,
+                                           @PathVariable("order_id") int orderId,
+                                           @AuthenticationPrincipal AppUserDetails user){
+        AppOrder order = orderRepository.findById(orderId).get();
+        if(order.getUser().getEmail().equals(user.getUsername())){
+            if(order.getEthPayment().getStatus().equals(EthPaymentStatus.PAYED)){
+                try {
+                    TransactionReceipt receipt = service.refund(orderId, request.address());
+                    if(receipt.getStatus().equals("0x1")){
+                        return new ResponseEntity<>("Refund is proceeding by contract, request GET ORDER to view status", HttpStatus.OK);
+                    } else {
+                        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                    }
+                } catch (IOException e) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            } else {
+                return new ResponseEntity<>("Refund declined by server because order completed or already refunded", HttpStatus.OK);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
 }

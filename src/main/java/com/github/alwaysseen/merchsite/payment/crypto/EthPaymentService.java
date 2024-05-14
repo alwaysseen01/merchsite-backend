@@ -88,9 +88,9 @@ public class EthPaymentService {
                 .get();
     }
 
-    public TransactionReceipt refund(int orderId) throws IOException {
-        Credentials SHOP_ADDRESS = Credentials.create(ECKeyPair.create(new BigInteger(MAIN_WALLET.substring(2), 16)));
-        TransactionManager txSender = new FastRawTransactionManager(web3j, SHOP_ADDRESS);
+    public TransactionReceipt refund(int orderId, String address) throws IOException {
+        Credentials sender = Credentials.create(ECKeyPair.create(new BigInteger(address.substring(2), 16)));
+        TransactionManager txSender = new FastRawTransactionManager(web3j, sender);
 
         Function function = new Function(
                 "refund",
