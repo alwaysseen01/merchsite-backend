@@ -56,7 +56,6 @@ public class EthPaymentController {
                     EthPayment payment = new EthPayment();
                     payment.setTxHash(receipt.getTransactionHash());
                     payment.setOrder(order);
-                    payment.setStatus(EthPaymentStatus.PAYED);
                     order.setEthPayment(payment);
                     repository.save(payment);
                     orderRepository.save(order);
