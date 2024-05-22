@@ -12,8 +12,10 @@ import com.github.alwaysseen.merchsite.payment.paypal.response.attributes.PayPal
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -21,10 +23,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@Slf4j
 public class PayPalPaymentService {
-    private final String CLIENT_ID = "Af-uo24kik7c0d0tDqUan8uev07dhR8PaLqXjfOG354sZSgj_TRLM98-sbRUwcl7kg1-5s1NH8mGBjPf";
-    private final String CLIENT_SECRET = "EPpzaXFjWJ6U4wJ-YK2Qit4hgvZaWvryazPK5USFW_WOD0D6GmG7fLQC3_g3Z9dsQMuSE05S4E15qCxL";
-    private final Logger logger = LoggerFactory.getLogger(PayPalPaymentService.class);
+    @Value("${PAYPAL_CLIENT}")
+    private String CLIENT_ID;
+
+    @Value("${PAYPAL_SECRET}")
+    private String CLIENT_SECRET;
 
 
     private String accessToken;
@@ -130,7 +135,7 @@ public class PayPalPaymentService {
     }
 
     public PayPalRefundResponse refund(String capture_id, PayPalRefundRequest request) throws JsonProcessingException {
-        logger.info("SERVICE METHOD REFUND");
+        log.info("SERVICE METHOD REFUND");
         String url = "https://api-m.sandbox.paypal.com/v2/payments/captures/"+capture_id+"/refund";
         RestTemplate restTemplate = new RestTemplate();
 

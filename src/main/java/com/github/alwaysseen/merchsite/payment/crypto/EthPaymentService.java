@@ -2,7 +2,6 @@ package com.github.alwaysseen.merchsite.payment.crypto;
 
 import com.github.alwaysseen.merchsite.payment.crypto.contracts.PaymentContract;
 import com.github.alwaysseen.merchsite.payment.crypto.response.CurrencyCourseResponse;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -67,7 +66,7 @@ public class EthPaymentService {
 
     public TransactionReceipt capturePayment(int orderId, double amount, String address) throws IOException {
         PaymentContract contract = loadContract();
-        long weiValue = (long)(amount / 2927 * Math.pow(10, 18));
+        long weiValue = (long)(amount / getEthCourse() * Math.pow(10, 18));
         Credentials sender = Credentials.create(ECKeyPair.create(new BigInteger(address.substring(2), 16)));
         TransactionManager txSendr = new FastRawTransactionManager(web3j, sender, new NoOpProcessor(web3j));
         Function function = new Function(
